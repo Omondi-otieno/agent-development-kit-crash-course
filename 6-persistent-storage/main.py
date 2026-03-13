@@ -4,13 +4,14 @@ from dotenv import load_dotenv
 from google.adk.runners import Runner
 from google.adk.sessions import DatabaseSessionService
 from memory_agent.agent import memory_agent
-from utils import call_agent_async
+from utils import call_agent_async, display_state_async
 
 load_dotenv()
 
 # ===== PART 1: Initialize Persistent Session Service =====
 # Using SQLite database for persistent storage
-db_url = "sqlite:///./my_agent_data.db"
+# Note: Use sqlite+aiosqlite for async driver support
+db_url = "sqlite+aiosqlite:///./my_agent_data.db"
 session_service = DatabaseSessionService(db_url=db_url)
 
 
@@ -29,7 +30,7 @@ async def main_async():
 
     # ===== PART 3: Session Management - Find or Create =====
     # Check for existing sessions for this user
-    existing_sessions = session_service.list_sessions(
+    existing_sessions = await session_service.list_sessions(
         app_name=APP_NAME,
         user_id=USER_ID,
     )
@@ -41,7 +42,7 @@ async def main_async():
         print(f"Continuing existing session: {SESSION_ID}")
     else:
         # Create a new session with initial state
-        new_session = session_service.create_session(
+        new_session = await session_service.create_session(
             app_name=APP_NAME,
             user_id=USER_ID,
             state=initial_state,

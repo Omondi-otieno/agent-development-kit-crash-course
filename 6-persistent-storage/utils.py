@@ -58,6 +58,36 @@ def display_state(
         print(f"Error displaying state: {e}")
 
 
+async def display_state_async(
+    session_service, app_name, user_id, session_id, label="Current State"
+):
+    """Display the current session state in a formatted way (async version)."""
+    try:
+        session = await session_service.get_session(
+            app_name=app_name, user_id=user_id, session_id=session_id
+        )
+
+        # Format the output with clear sections
+        print(f"\n{'-' * 10} {label} {'-' * 10}")
+
+        # Handle the user name
+        user_name = session.state.get("user_name", "Unknown")
+        print(f"👤 User: {user_name}")
+
+        # Handle reminders
+        reminders = session.state.get("reminders", [])
+        if reminders:
+            print("📝 Reminders:")
+            for idx, reminder in enumerate(reminders, 1):
+                print(f"  {idx}. {reminder}")
+        else:
+            print("📝 Reminders: None")
+
+        print("-" * (22 + len(label)))
+    except Exception as e:
+        print(f"Error displaying state: {e}")
+
+
 async def process_agent_response(event):
     """Process and display agent response events."""
     # Log basic event info
@@ -122,7 +152,7 @@ async def call_agent_async(runner, user_id, session_id, query):
     final_response_text = None
 
     # Display state before processing
-    display_state(
+    await display_state_async(
         runner.session_service,
         runner.app_name,
         user_id,
@@ -142,7 +172,7 @@ async def call_agent_async(runner, user_id, session_id, query):
         print(f"Error during agent call: {e}")
 
     # Display state after processing the message
-    display_state(
+    await display_state_async(
         runner.session_service,
         runner.app_name,
         user_id,
